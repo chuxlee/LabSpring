@@ -10,5 +10,12 @@ services:
       POSTGRES_DB: health_checker
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  redis-broker:
+    image: redis:7.0-alpine
+    container_name: health_checker_redis
+    ports:
+      - "6379:6379"
+
 volumes:
   pgdata:
