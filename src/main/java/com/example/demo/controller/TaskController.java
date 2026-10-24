@@ -2,33 +2,35 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.TaskRequest;
 import com.example.demo.dto.TaskResponse;
-import com.example.demo.service.TaskService;
+import com.example.demo.repository.TaskRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/task")
 public class TaskController {
-    private final TaskService taskService;
 
-    public TaskController(TaskService taskService) {
-        this.taskService = taskService;
+    private final TaskRepository taskRepository; // Внедряем нашу базу
+
+    public TaskController(TaskRepository taskRepository) {
+        this.taskRepository = taskRepository;
     }
 
     @PostMapping
     public ResponseEntity<TaskResponse> createTask(@RequestBody TaskRequest request) {
-        var taskId = taskService.registerNewTask();
-
-        TaskResponse response = new TaskResponse(
-                taskId,
+        // 1. Собираем объект задачи
+        TaskResponse task = new TaskResponse(
+                null,
                 "queued",
                 request.getUrls().size()
         );
 
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        // 2. СОХРАНЯЕМ В ПОСТГРЕС ОДНОЙ СТРОЧКОЙ!
+        TaskResponse savedTask = taskRepository.save(task);
+
+        // 3. Возвращаем клиенту
+        return new ResponseEntity<>(savedTask, HttpStatus.CREATED);
     }
 }
